@@ -1,0 +1,30 @@
+<launch>
+
+  <!-- Optional Arguments for AutoWeed Launch -->
+  <arg name="run" default="autoweed"/> <!-- Directory name to save images to the SSD -->
+  <arg name="target" default="1"/> <!-- Targeting enabled, 0: false, 1:true -->
+  <arg name="display" default="1"/> <!-- Display enabled, 0: false, 1:true -->
+  <arg name="fps" default="1"/> <!-- Frame rate in fps as an integer -->
+  <arg name="save" default="0"/> <!-- Save images, 0: false, 1: true -->
+
+  <!-- Image Grabbers -->
+  <group ns="Grabber0">
+    <node pkg="image_grabber" type="image_grabber" name="image_grabber0" args="/home/nvidia/AutoWeed/00f37e71d.jpg" />
+    <node pkg="weed_detector" type="weed_detector" name="weed_detector0" args="0 $(arg target) $(arg display) $(arg fps) $(arg save) $(arg run)" />
+  </group>
+  <group ns="Grabber1">
+   <node pkg="image_grabber" type="image_grabber" name="image_grabber1" args="/home/nvidia/AutoWeed/0b81fee2f.jpg" />
+   <node pkg="weed_detector" type="weed_detector" name="weed_detector1" args="1 $(arg target) $(arg display) $(arg fps) $(arg save) $(arg run)" />
+  </group>
+  <group ns="Grabber2">
+   <node pkg="image_grabber" type="image_grabber" name="image_grabber2" args="/home/nvidia/AutoWeed/0d6773ff2.jpg" />
+   <node pkg="weed_detector" type="weed_detector" name="weed_detector2" args="2 $(arg target) $(arg display) $(arg fps) $(arg save) $(arg run)" />
+  </group>
+  <group ns="Grabber3">
+   <node pkg="image_grabber" type="image_grabber" name="image_grabber3" args="/home/nvidia/AutoWeed/1a6540288.jpg" />
+   <node pkg="weed_detector" type="weed_detector" name="weed_detector3" args="3 $(arg target) $(arg display) $(arg fps) $(arg save) $(arg run)" />
+  </group>
+  
+  <!-- TensorRT Processor -->
+
+</launch>

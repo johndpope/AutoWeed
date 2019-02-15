@@ -1,0 +1,94 @@
+<launch>
+  <!-- ROS Bag Logging -->
+  <!-- <node pkg="rosbag" type="record" name="rosbag_node" args="record -a -o /home/nvidia/bagfiles/autoweed_mannedsystem" /> -->
+  <node pkg="rosbag" type="record" name="rosbag_node" args="record /tf /tf_static /an_device/Odom /an_device/NavSatFix /an_device/Imu /an_device/SystemStatus /an_device/FilterStatus /an_device/Twist /rosout /rosout_agg /targets /sprayers -o /home/nvidia/bagfiles/autoweed_mannedsystem" />
+
+  <!-- AdNav Node -->
+  <node pkg="advanced_navigation_driver" type="advanced_navigation_driver" name="adnav_sensors" args="/dev/ttyUSB0 115200" />
+
+  <!-- AdNav Static Transform -->
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="adnav_broadcaster" args="0.612 0.0 0 0 0 0 base_link ad_nav_frame" /> -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="adnav_broadcaster" args="0 0.0 0 0 0 0 base_link ad_nav_frame" />
+
+  <!-- Camera Transforms -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="camera_1_static_broadcast" args="-0.595 1.092 0 0 0 0 base_link camera_1_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="camera_2_static_broadcast" args="-0.215 1.092 0 0 0 0 base_link camera_2_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="camera_3_static_broadcast" args="0.215 1.092 0 0 0 0 base_link camera_3_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="camera_4_static_broadcast" args="0.595 1.092 0 0 0 0 base_link camera_4_frame" />
+
+  <!-- Sprayer Transforms -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_1_static_broadcast" args="-1.53 -1.112 0 0 0 0 base_link spray_1_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_mid_1_static_broadcast" args="-1.275 -1.112 0 0 0 0 base_link spray_mid_1_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_2_static_broadcast" args="-1.02 -1.112 0 0 0 0 base_link spray_2_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_mid_2_static_broadcast" args="-0.765  -1.112 0 0 0 0 base_link spray_mid_2_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_3_static_broadcast" args="-0.51 -1.112 0 0 0 0 base_link spray_3_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_mid_3_static_broadcast" args="-0.255 -1.112 0 0 0 0 base_link spray_mid_3_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_4_static_broadcast" args="0 -1.112 0 0 0 0 base_link spray_4_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_mid_4_static_broadcast" args="0.255 -1.112 0 0 0 0 base_link spray_mid_4_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_5_static_broadcast" args="0.51 -1.112 0 0 0 0 base_link spray_5_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_mid_5_static_broadcast" args="0.765 -1.112 0 0 0 0 base_link spray_mid_5_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_6_static_broadcast" args="1.02 -1.112 0 0 0 0 base_link spray_6_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_mid_6_static_broadcast" args="1.275 -1.112 0 0 0 0 base_link spray_mid_6_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_7_static_broadcast" args="1.53 -1.112 0 0 0 0 base_link spray_7_frame" />
+
+  <!-- Tracking Core -->
+  <node pkg="autoweed_tracking_core" type="tracking_core" name="weed_tracker" />
+
+  <!-- Sprayer Driver Node -->
+  <node pkg="sprayer_system" type="sprayer_driver_core" name="sprayer_core" args="/dev/ttyUSB1 57600"/>
+
+  <!-- Optional Arguments for AutoWeed Launch -->
+  <arg name="scene" default="0" /> <!-- Scene type, 0: inside, 1: outside -->
+  <arg name="target_size" default="40" /> <!-- Target size, N (NxN pixels) -->
+
+  <!-- Camera and Image Processor Node Groups -->
+  <group ns="Camera0">
+    <!-- Camera Nodelet Manager -->
+    <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" />
+    <node pkg="nodelet" type="nodelet" name="camera_nodelet0"
+          args="load pointgrey_camera_driver/PointGreyCameraNodelet camera_nodelet_manager" >
+      <param name="frame_id" value="camera0" />
+      <param name="camera_id" value="0" />
+      <param name="scene" value="$(arg scene)" />
+    </node>
+    <node pkg="image_processor" type="image_processor" name="image_processor0" args="0 $(arg target_size)" />
+  </group>
+
+  <group ns="Camera1">
+    <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" />
+    <node pkg="nodelet" type="nodelet" name="camera_nodelet1"
+          args="load pointgrey_camera_driver/PointGreyCameraNodelet camera_nodelet_manager" >
+      <param name="frame_id" value="camera1" />
+      <param name="camera_id" value="1" />
+      <param name="scene" value="$(arg scene)" />
+    </node>
+    <node pkg="image_processor" type="image_processor" name="image_processor1" args="1 $(arg target_size)" >
+    </node>
+  </group>
+
+  <group ns="Camera2">
+    <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" />
+    <node pkg="nodelet" type="nodelet" name="camera_nodelet2" output="screen"
+          args="load pointgrey_camera_driver/PointGreyCameraNodelet camera_nodelet_manager" >
+      <param name="frame_id" value="camera2" />
+      <param name="camera_id" value="2" />
+      <param name="scene" value="$(arg scene)" />
+    </node>
+  <node pkg="image_processor" type="image_processor" name="image_processor2" args="2 $(arg target_size)" />
+  </group>
+
+  <group ns="Camera3">
+    <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" />
+    <node pkg="nodelet" type="nodelet" name="camera_nodelet3"
+          args="load pointgrey_camera_driver/PointGreyCameraNodelet camera_nodelet_manager" >
+      <param name="frame_id" value="camera3" />
+      <param name="camera_id" value="3" />
+      <param name="scene" value="$(arg scene)" />
+    </node>
+    <node pkg="image_processor" type="image_processor" name="image_processor3" args="3 $(arg target_size)" />
+  </group>
+
+  <!-- Simple Graphical User Interface -->
+  <!-- <node pkg="simple_gui" type="simple_gui" name="AutoWeed"/> -->
+
+</launch>

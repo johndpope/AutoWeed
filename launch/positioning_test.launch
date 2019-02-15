@@ -1,0 +1,52 @@
+<launch>
+
+  <!-- <rosparam command="load" file="$(find robot_localization)/params/dual_ekf_navsat_example.yaml" /> -->
+
+  <!-- Position Logger -->
+  <!-- <node pkg="transform_node" type="position_logger_core" name="auto_logger_csv_generator" /> -->
+
+  <!-- ROS Bag Logging -->
+  <node pkg="rosbag" type="record" name="rosbag_node" args="record -a -o /home/nvidia/bagfiles/position_testing" />
+
+  <!-- AdNav Node -->
+  <node pkg="advanced_navigation_driver" type="advanced_navigation_driver" name="adnav_sensors" args="/dev/ttyUSB0 115200" />
+
+  <!-- AdNav Static Transform -->
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="adnav_broadcaster" args="0.612 0.0 0 0 0 0 base_link ad_nav_frame" /> -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="adnav_broadcaster" args="0 0.0 0 0 0 0 base_link ad_nav_frame" />
+
+  <!-- Camera Transforms -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="camera_1_static_broadcast" args="-0.595 1.092 0 0 0 0 base_link camera_1_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="camera_2_static_broadcast" args="-0.215 1.092 0 0 0 0 base_link camera_2_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="camera_3_static_broadcast" args="0.215 1.092 0 0 0 0 base_link camera_3_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="camera_4_static_broadcast" args="0.595 1.092 0 0 0 0 base_link camera_4_frame" />
+
+  <!-- Sprayer Transforms -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_1_static_broadcast" args="-1.53 -1.112 0 0 0 0 base_link spray_1_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_mid_1_static_broadcast" args="-1.275 -1.112 0 0 0 0 base_link spray_mid_1_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_2_static_broadcast" args="-1.02 -1.112 0 0 0 0 base_link spray_2_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_mid_2_static_broadcast" args="-0.765  -1.112 0 0 0 0 base_link spray_mid_2_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_3_static_broadcast" args="-0.51 -1.112 0 0 0 0 base_link spray_3_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_mid_3_static_broadcast" args="-0.255 -1.112 0 0 0 0 base_link spray_mid_3_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_4_static_broadcast" args="0 -1.112 0 0 0 0 base_link spray_4_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_mid_4_static_broadcast" args="0.255 -1.112 0 0 0 0 base_link spray_mid_4_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_5_static_broadcast" args="0.51 -1.112 0 0 0 0 base_link spray_5_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_mid_5_static_broadcast" args="0.765 -1.112 0 0 0 0 base_link spray_mid_5_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_6_static_broadcast" args="1.02 -1.112 0 0 0 0 base_link spray_6_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_mid_6_static_broadcast" args="1.275 -1.112 0 0 0 0 base_link spray_mid_6_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="spray_7_static_broadcast" args="1.53 -1.112 0 0 0 0 base_link spray_7_frame" />
+
+  <!-- <node pkg="autoweed_tracking_core" type="tracking_core" name="weed_tracker" /> -->
+
+  <!-- Launch stuff for robot_localisation -->
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="adnav_broadcaster" args="0 0 0 1.571 0 3.14159 base_link adnav_frame" /> -->
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="adnav_broadcaster" args="0 0 0 0 0 0 base_link adnav_frame" /> -->
+  <!-- <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_odom" clear_params="true"/> -->
+  <!-- <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se_map" clear_params="true">
+    <remap from="odometry/filtered" to="odometry/filtered_map"/>
+  </node>
+  <node pkg="robot_localization" type="navsat_transform_node" name="navsat_transform" clear_params="true">
+    <remap from="odometry/filtered" to="odometry/filtered_map"/>
+  </node> -->
+
+</launch>

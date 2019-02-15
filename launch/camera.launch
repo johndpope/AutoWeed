@@ -1,0 +1,41 @@
+<launch>
+
+  <arg name="scene" default="0" />
+  <arg name="target" default="0" />
+  
+  <!-- Camera Nodelet Manager -->
+  <node pkg="nodelet" type="nodelet" name="camera_nodelet_manager" args="manager" />
+
+  <!-- Camera Nodes -->
+  <node pkg="nodelet" type="nodelet" name="camera_nodelet0"
+        args="load pointgrey_camera_driver/PointGreyCameraNodelet camera_nodelet_manager" >
+    <param name="frame_id" value="camera0" />
+    <param name="camera_id" value="0" />
+    <param name="scene" value="$(arg scene)" />
+  </node>
+  <node pkg="nodelet" type="nodelet" name="camera_nodelet1"
+        args="load pointgrey_camera_driver/PointGreyCameraNodelet camera_nodelet_manager" >
+    <param name="frame_id" value="camera1" />
+    <param name="camera_id" value="1" />
+    <param name="scene" value="$(arg scene)" />
+  </node>
+  <node pkg="nodelet" type="nodelet" name="camera_nodelet2" output="screen"
+        args="load pointgrey_camera_driver/PointGreyCameraNodelet camera_nodelet_manager" >
+    <param name="frame_id" value="camera2" />
+    <param name="camera_id" value="2" />
+    <param name="scene" value="$(arg scene)" />
+  </node>
+  <node pkg="nodelet" type="nodelet" name="camera_nodelet3"
+        args="load pointgrey_camera_driver/PointGreyCameraNodelet camera_nodelet_manager" >
+    <param name="frame_id" value="camera3" />
+    <param name="camera_id" value="3" />
+    <param name="scene" value="$(arg scene)" />
+  </node>
+
+  <!-- Image Processor Nodes -->
+  <node pkg="image_processor" type="image_processor" name="image_processor0" args="0 1 1" />
+  <node pkg="image_processor" type="image_processor" name="image_processor1" args="1 1 1" />
+  <node pkg="image_processor" type="image_processor" name="image_processor2" args="2 1 1" />
+  <node pkg="image_processor" type="image_processor" name="image_processor3" args="3 1 1" />
+
+</launch>

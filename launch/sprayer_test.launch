@@ -1,0 +1,9 @@
+<launch>
+
+  <!-- Sprayer Tester -->
+  <node pkg="sprayer_system" type="spray_tester" name="sprayer_test_program" />
+
+  <!-- Sprayer Driver Node -->
+  <node pkg="sprayer_system" type="sprayer_driver_core" name="sprayer_core_program" args="/dev/ttyUSB1 57600" />
+
+</launch>
