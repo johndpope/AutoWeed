@@ -8,10 +8,10 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "image_publisher");
 	ros::NodeHandle nh;
 	image_transport::ImageTransport it(nh);
-	image_transport::Publisher pub = it.advertise("image", 5);
+	image_transport::Publisher pub = it.advertise("image", 4);
 
 	// Parse command line arguments
-	if (argc != 2)
+	if (argc != 3)
 	{
 		printf("\nCannot start - not enough commnand line arguments.\n");
 		printf("Number of command line arguments detected: %i\n", argc);
@@ -19,10 +19,12 @@ int main(int argc, char** argv)
 	}
 	printf("\nYour image grabber is running\nClose the Terminal window when done.\n");
 
+
 	cv::Mat image = cv::imread(argv[1], CV_LOAD_IMAGE_COLOR);
 	sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", image).toImageMsg();
+	int fps = atoi(argv[2]);
+	ros::Rate loop_rate(fps);
 
-	ros::Rate loop_rate(1);
 	while (nh.ok()) {
 		pub.publish(msg);
 		ros::spinOnce();

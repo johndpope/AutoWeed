@@ -1,7 +1,7 @@
-# Target information message
+# Sprayer information message
 Header header
 
-# Target Id
+# Sprayer Id
 uint16 sprayerIDs
 
 TargetInfo targetInfo

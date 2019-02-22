@@ -1,0 +1,30 @@
+<launch>
+
+  <!-- Optional Arguments for AutoWeed Launch -->
+  <arg name="run" default="autoweed"/> <!-- Directory name to save images to the SSD -->
+  <arg name="display" default="0"/> <!-- Display enabled, 0: false, 1:true -->
+  <arg name="fps" default="1"/> <!-- Frame rate in fps as an integer -->
+  <arg name="save" default="0"/> <!-- Save images, 0: false, 1: true -->
+
+  <!-- Image Grabbers -->
+  <group ns="Grabber0">
+    <node pkg="image_grabber" type="image_grabber" name="image_grabber0" args="/home/nvidia/AutoWeed/20161207-111917-0.jpg $(arg fps)" />
+    <node pkg="image_preprocessor" type="image_preprocessor" name="image_preprocessor0" args="0 $(arg display) $(arg fps) $(arg save) $(arg run)" />
+  </group>
+  <group ns="Grabber1">
+    <node pkg="image_grabber" type="image_grabber" name="image_grabber1" args="/home/nvidia/AutoWeed/20170210-132343-0.jpg $(arg fps)" />
+    <node pkg="image_preprocessor" type="image_preprocessor" name="image_preprocessor1" args="1 $(arg display) $(arg fps) $(arg save) $(arg run)" />
+  </group>
+  <group ns="Grabber2">
+    <node pkg="image_grabber" type="image_grabber" name="image_grabber2" args="/home/nvidia/AutoWeed/20170627-103442-0.jpg $(arg fps)" />
+    <node pkg="image_preprocessor" type="image_preprocessor" name="image_preprocessor2" args="2 $(arg display) $(arg fps) $(arg save) $(arg run)" />
+  </group>
+  <group ns="Grabber3">
+    <node pkg="image_grabber" type="image_grabber" name="image_grabber3" args="/home/nvidia/AutoWeed/20170627-103821-0.jpg $(arg fps)" />
+    <node pkg="image_preprocessor" type="image_preprocessor" name="image_preprocessor3" args="3 $(arg display) $(arg fps) $(arg save) $(arg run)" />
+  </group>
+  
+  <!-- TensorRT Processor -->
+  <node pkg="inference_engine" type="inference_engine" name="inference_engine" args="" />
+
+</launch>
