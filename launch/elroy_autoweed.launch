@@ -1,6 +1,11 @@
 <launch>
 
+
+  <!-- Optional Arguments for AutoWeed Launch -->
+  <arg name="model" default="autoweed"/>
+  <!-- Directory name to save images to the SSD -->
+
   <!-- TensorRT Processor -->
-  <node pkg="inference_engine" type="inference_engine" name="inference_engine" args="" />
+  <node pkg="inference_engine" type="inference_engine" name="inference_engine" args="$(arg model)" />
 
 </launch>

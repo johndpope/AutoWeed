@@ -11,7 +11,7 @@
 
   <!-- ROS Bag Logging -->
   <!-- <node pkg="rosbag" type="record" name="rosbag_node" args="record -a -o /home/nvidia/bagfiles/autoweed_mannedsystem" /> -->
-  <node pkg="rosbag" type="record" name="rosbag_node" args="record /tf /tf_static /an_device/Odom /an_device/NavSatFix /an_device/Imu /an_device/SystemStatus /an_device/FilterStatus /an_device/Twist /rosout /rosout_agg /targets /sprayers /locatedTargets -o /mnt/data/bagfiles/" />
+  <node pkg="rosbag" type="record" name="rosbag_node" args="record /rosout /rosout_agg /targets /sprayers /locatedTargets /Camera0/image_raw /Camera1/image_raw /Camera2/image_raw /Camera3/image_raw -o /mnt/data/bagfiles/" />
 
   <!-- AdNav Node -->
   <node pkg="advanced_navigation_driver" type="advanced_navigation_driver" name="adnav_sensors" args="/dev/ttyUSB0 115200" />
