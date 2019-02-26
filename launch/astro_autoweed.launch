@@ -93,7 +93,4 @@
     <node pkg="image_preprocessor" type="image_preprocessor" name="image_preprocessor3" args="3 $(arg display) $(arg fps) $(arg save) $(arg run)" />
   </group>
 
-  <!-- TensorRT Processor -->
-  <node pkg="inference_engine" type="inference_engine" name="inference_engine" args="" />
-
 </launch>

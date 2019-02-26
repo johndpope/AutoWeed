@@ -1,0 +1,6 @@
+<launch>
+
+  <!-- TensorRT Processor -->
+  <node pkg="inference_engine" type="inference_engine" name="inference_engine" args="" />
+
+</launch>

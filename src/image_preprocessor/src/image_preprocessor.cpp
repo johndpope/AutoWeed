@@ -33,12 +33,12 @@ uint8_t INPUT_W = 224;
 // Frame counters
 int frame_counts[] = {0, 0, 0, 0};
 
-void imageCallback(const sensor_msgs::ImageConstPtr& img)
+void imageCallback(const sensor_msgs::ImageConstPtr& img, const sensor_msgs::CameraInfoConstPtr& ci)
 {
     try
     {
         // Extract ROS timestamp
-        ros::Time timestamp = ros::Time::now(); // Don't have the camera timestamp because we are emulating images from file
+		ros::Time timestamp = ci->header.stamp;
 
         // Extract image
         Mat image = cv_bridge::toCvShare(img, "bgr8")->image;
@@ -111,11 +111,11 @@ int main(int argc, char **argv)
     // Parse command line arguments
     if(argc != 6)
     {
-        printf("\nCannot start - not enough commnand line arguments. \nUsage: rosrun image_processor image_processor {target_type} {camera_id}. \nTry: rosrun image_processor image_processor 0 0\n");
-        printf("Number of command line arguments detected: %i\n",argc);
+        ROS_ERROR("\nCannot start - not enough commnand line arguments. \nUsage: rosrun image_processor image_processor {target_type} {camera_id}. \nTry: rosrun image_processor image_processor 0 0\n");
+        ROS_ERROR("Number of command line arguments detected: %i\n",argc);
         exit(EXIT_FAILURE);
     }
-    printf("\nYour image preprocessor is running\nClose the Terminal window when done.\n");
+    ROS_INFO("\nYour image pre-preprocessor is running\nClose the Terminal window when done.\n");
 
     // Set up target type and camera id
     camera_id = atoi(argv[1]);
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
     }
 
     image_transport::ImageTransport it(nh);
-    image_transport::Subscriber sub = it.subscribe("image", 1, imageCallback);
+	image_transport::CameraSubscriber sub = it.subscribeCamera("image_raw", 1, imageCallback);
 	imagePublisher = nh.advertise<custom_messages::ImageInfo>("/preprocessed_images", 1);
 
     while(ros::ok()){

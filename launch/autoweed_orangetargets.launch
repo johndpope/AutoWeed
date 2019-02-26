@@ -57,7 +57,7 @@
       <param name="camera_id" value="0" />
       <param name="scene" value="$(arg scene)" />
     </node>
-    <node pkg="image_preprocessor" type="image_preprocessor" name="image_preprocessor0" args="0 $(arg display) $(arg fps) $(arg save) $(arg run)" />
+    <node pkg="image_processor" type="image_processor" name="image_processor0" args="0 $(arg target) $(arg display) $(arg fps) $(arg save) $(arg run)" />
   </group>
 
   <group ns="Camera1">
@@ -68,7 +68,7 @@
       <param name="camera_id" value="1" />
       <param name="scene" value="$(arg scene)" />
     </node>
-    <node pkg="image_preprocessor" type="image_preprocessor" name="image_preprocessor1" args="1 $(arg display) $(arg fps) $(arg save) $(arg run)" />
+    <node pkg="image_processor" type="image_processor" name="image_processor1" args="1 $(arg target) $(arg display) $(arg fps) $(arg save) $(arg run)" />
   </group>
 
   <group ns="Camera2">
@@ -79,7 +79,7 @@
       <param name="camera_id" value="2" />
       <param name="scene" value="$(arg scene)" />
     </node>
-  <node pkg="image_preprocessor" type="image_preprocessor" name="image_preprocessor2" args="2 $(arg display) $(arg fps) $(arg save) $(arg run)" />
+  <node pkg="image_processor" type="image_processor" name="image_processor2" args="2 $(arg target) $(arg display) $(arg fps) $(arg save) $(arg run)" />
   </group>
 
   <group ns="Camera3">
@@ -90,10 +90,7 @@
       <param name="camera_id" value="3" />
       <param name="scene" value="$(arg scene)" />
     </node>
-    <node pkg="image_preprocessor" type="image_preprocessor" name="image_preprocessor3" args="3 $(arg display) $(arg fps) $(arg save) $(arg run)" />
+    <node pkg="image_processor" type="image_processor" name="image_processor3" args="3 $(arg target) $(arg display) $(arg fps) $(arg save) $(arg run)" />
   </group>
-
-  <!-- TensorRT Processor -->
-  <node pkg="inference_engine" type="inference_engine" name="inference_engine" args="" />
 
 </launch>

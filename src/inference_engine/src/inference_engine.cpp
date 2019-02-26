@@ -41,8 +41,11 @@ static const int BATCH_SIZE = 4;
 char trtFilename[32] = "resnet.trt";
 char uffFilename[32] = "resnet.uff"; // UFF file generated using TensorRT's Python API
 char timesFilename[32] = "times.csv";
+char labelsFilename[32] = "labels.csv";
 bool recieve_flags[] = { false, false, false, false };
 ros::Time timestamps[4];
+int cameraIDs[4];
+int frameCounts[4];
 vector<void*> buffers(NB_BINDINGS);
 float* batch = new float[BATCH_SIZE * INPUT_C * INPUT_H * INPUT_W];
 
@@ -116,7 +119,7 @@ inline unsigned int elementSize(DataType t)
 void gatherCallback(const custom_messages::ImageInfoConstPtr& msg) {
 	ros::Time timestamp = msg->header.stamp;
 	int cameraID = msg->cameraID;
-	int frameCount = msg->frameCount;
+	frameCounts[cameraID] = msg->frameCount;
 
 	// Flag reception of frame from specific camera id
 	recieve_flags[cameraID] = true;
@@ -234,9 +237,11 @@ int main(int argc, char** argv)
 	char trtFilepath[256];
 	char uffFilepath[256];
 	char timesFilepath[256];
+	char labelsFilepath[256];
 	sprintf(trtFilepath, "%s/%s", resourceDirectory, trtFilename);
 	sprintf(uffFilepath, "%s/%s", resourceDirectory, uffFilename);
 	sprintf(timesFilepath, "%s/%s", resourceDirectory, timesFilename);
+	sprintf(labelsFilepath, "%s/%s", resourceDirectory, labelsFilename);
 
 	// Get timestamp
 	time_t rawtime;
@@ -300,6 +305,15 @@ int main(int argc, char** argv)
 		timesFile << "Batch,Inference time (ms)\n";
 		timesFile.close();
 	}
+	// Create labels file
+	ofstream labelsFile;
+	labelsFile.open(labelsFilepath, ofstream::out);
+	if (labelsFile.is_open())
+	{
+		// Write header
+		labelsFile << "Frame,Camera,Label\n";
+		labelsFile.close();
+	}
 
 	int batchCount = 0;
 
@@ -356,7 +370,7 @@ int main(int argc, char** argv)
 				ROS_INFO("Image classified as label %d with %f%% confidence", label, score);
 
 				// Present target for spraying if non-negative and > 50% confidence
-				if (score > 0.5/* && label != 8*/) {
+				if (score > 0.5 && label != 8) {
 					// Publish target
 					custom_messages::TargetInfo newTarget;
 					newTarget.header.stamp = timestamps[cameraID];
@@ -367,6 +381,16 @@ int main(int argc, char** argv)
 					newTarget.boxHeight = 300;
 					newTarget.boxWidth = 480;
 					target_publisher.publish(newTarget);
+				}
+
+				// Append label to csv
+				ofstream labelsFile;
+				labelsFile.open(labelsFilepath, ofstream::out | ofstream::app);
+				if (labelsFile.is_open())
+				{
+					// Write frame, camera and predicted label to file
+					labelsFile << frameCounts[cameraID] << "," << cameraID << "," << label << "\n";
+					labelsFile.close();
 				}
 			}
 
