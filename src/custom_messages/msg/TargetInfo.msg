@@ -1,6 +1,10 @@
 # Target information message
 Header header
 
+# Time detected and processing time
+time timeOfDetection
+int32 processingTimeMS
+
 # Target Id
 uint16 targetId
 

@@ -26,6 +26,7 @@
 #include <ros/package.h>
 #include "custom_messages/ImageInfo.h"
 #include "custom_messages/TargetInfo.h"
+#include "boost/date_time/posix_time/posix_time.hpp"
 
 using namespace nvuffparser;
 using namespace nvinfer1;
@@ -38,8 +39,8 @@ static const int INPUT_H = 224;
 static const int INPUT_W = 224;
 static const int NB_BINDINGS = 2;
 static const int BATCH_SIZE = 4;
-char trtFilename[32] = "resnet.trt";
-char uffFilename[32] = "resnet.uff"; // UFF file generated using TensorRT's Python API
+char trtFilename[32];
+char uffFilename[32];
 char timesFilename[32] = "times.csv";
 char labelsFilename[32] = "labels.csv";
 bool recieve_flags[] = { false, false, false, false };
@@ -231,6 +232,19 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "inference_engine");
 	ros::NodeHandle nh;
 
+	// Parse command line arguments
+	if (argc != 2)
+	{
+		ROS_ERROR("\nCannot start - not enough commnand line arguments.\n");
+		ROS_ERROR("Number of command line arguments detected: %i\n", argc);
+		exit(EXIT_FAILURE);
+	}
+	ROS_INFO("\nYour inference engine is running. Press CTRL-C to close\n");
+
+	// Set up target type and camera id
+	sprintf(uffFilename, "%s.uff", argv[1]);
+	sprintf(trtFilename, "%s.trt", argv[1]);
+
 	// Location of resource files
 	string packagePath = ros::package::getPath("inference_engine");
 	sprintf(resourceDirectory, "%s/resources/", packagePath.c_str());
@@ -256,7 +270,18 @@ int main(int argc, char** argv)
 
 	/* Register tensorflow input */
 	parser->registerInput("input_1", Dims3(INPUT_C, INPUT_H, INPUT_W), UffInputOrder::kNCHW);
-	parser->registerOutput("fc9/Sigmoid");
+
+	std::string model(argv[1]);
+	int negativeLabel;
+	if (model.compare("deepweeds") == 0)
+	{
+		parser->registerOutput("fc9/Sigmoid");
+		negativeLabel = 8;
+	}
+	else {
+		parser->registerOutput("fc3/Sigmoid");
+		negativeLabel = 2;
+	}
 
 	// If TRT file exists, load first
 	ICudaEngine* engine;
@@ -311,7 +336,7 @@ int main(int argc, char** argv)
 	if (labelsFile.is_open())
 	{
 		// Write header
-		labelsFile << "Frame,Camera,Label\n";
+		labelsFile << "Image time,Target time,Frame,Camera,Label\n";
 		labelsFile.close();
 	}
 
@@ -351,9 +376,7 @@ int main(int argc, char** argv)
 			// Gather output information
 			int bindingIdxOutput = 1;
 			int cameraCount = 4;
-			int outputCount = 9;
-			assert(outputCount * cameraCount == bufferSizesOutput.first);
-			assert(sizeof(float) == elementSize(bufferSizesOutput.second));
+			int outputCount = bufferSizesOutput.first / cameraCount;
 
 			size_t memSize = cameraCount * outputCount * elementSize(bufferSizesOutput.second);
 			float* outputs = new float[cameraCount * outputCount];
@@ -370,11 +393,13 @@ int main(int argc, char** argv)
 				ROS_INFO("Image classified as label %d with %f%% confidence", label, score);
 
 				// Present target for spraying if non-negative and > 50% confidence
-				if (score > 0.5 && label != 8) {
+				if (score > 0.5 && label != negativeLabel) {
 					// Publish target
 					custom_messages::TargetInfo newTarget;
 					newTarget.header.stamp = timestamps[cameraID];
-					newTarget.targetId = 0;
+					newTarget.timeOfDetection = ros::Time::now();
+					newTarget.processingTimeMS = ms;
+					newTarget.targetId = label;
 					newTarget.cameraId = cameraID + 1;
 					newTarget.xPixelLocation = 240;
 					newTarget.yPixelLocation = 150;
@@ -386,10 +411,15 @@ int main(int argc, char** argv)
 				// Append label to csv
 				ofstream labelsFile;
 				labelsFile.open(labelsFilepath, ofstream::out | ofstream::app);
+				//Convert timestamp to string
+				boost::posix_time::ptime image_posix_time = timestamps[cameraID].toBoost();
+				boost::posix_time::ptime target_posix_time = ros::Time::now().toBoost();
+				std::string image_time_str = boost::posix_time::to_iso_extended_string(image_posix_time);
+				std::string target_time_str = boost::posix_time::to_iso_extended_string(target_posix_time);
 				if (labelsFile.is_open())
 				{
 					// Write frame, camera and predicted label to file
-					labelsFile << frameCounts[cameraID] << "," << cameraID << "," << label << "\n";
+					labelsFile << image_time_str.c_str() << "," << target_time_str.c_str() << "," << frameCounts[cameraID] << "," << cameraID << "," << label << "\n";
 					labelsFile.close();
 				}
 			}
