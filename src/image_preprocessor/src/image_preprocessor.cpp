@@ -48,13 +48,9 @@ void imageCallback(const sensor_msgs::ImageConstPtr& img, const sensor_msgs::Cam
         
         // Save image
         if (save) {
-            if (frame_counts[camera_id] % (24 / fps) == 0) {
-                // Save every other image according to desired frame rate
-                // Note 24fps is max frame rate for low res cameras
-                char filename[256];
-                sprintf(filename, "%s/Frame%06dCamera%d.jpg", runDirectory, frame_counts[camera_id], camera_id);
-                imwrite(filename, image);
-            }
+            char filename[256];
+            sprintf(filename, "%s/Frame%06dCamera%d.jpg", runDirectory, frame_counts[camera_id], camera_id);
+            imwrite(filename, image);
         }
 
 		// Downsample to 224x224 with nearest neighbout
@@ -125,7 +121,7 @@ int main(int argc, char **argv)
     
     // Create directory
     if (save) {
-        sprintf(runDirectory, "/home/nvidia/AutoWeed/%s/", argv[5]);
+        sprintf(runDirectory, "/mnt/data/AutoWeed/%s/", argv[5]);
         const int dir_err = mkdir(runDirectory, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     }
 
@@ -140,6 +136,7 @@ int main(int argc, char **argv)
 
     image_transport::ImageTransport it(nh);
 	image_transport::CameraSubscriber sub = it.subscribeCamera("image_raw", 1, imageCallback);
+	//image_transport::Subscriber sub = it.subscribe("image_raw", 1, imageCallback);
 	imagePublisher = nh.advertise<custom_messages::ImageInfo>("/preprocessed_images", 1);
 
     while(ros::ok()){

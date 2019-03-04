@@ -34,6 +34,7 @@ using namespace std;
 
 
 char resourceDirectory[256];
+char runDirectory[256];
 static const int INPUT_C = 3;
 static const int INPUT_H = 224;
 static const int INPUT_W = 224;
@@ -233,7 +234,7 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 
 	// Parse command line arguments
-	if (argc != 2)
+	if (argc != 3)
 	{
 		ROS_ERROR("\nCannot start - not enough commnand line arguments.\n");
 		ROS_ERROR("Number of command line arguments detected: %i\n", argc);
@@ -248,14 +249,16 @@ int main(int argc, char** argv)
 	// Location of resource files
 	string packagePath = ros::package::getPath("inference_engine");
 	sprintf(resourceDirectory, "%s/resources/", packagePath.c_str());
+	sprintf(runDirectory, "%s/%s/", resourceDirectory, argv[2]);
+	const int dir_err = mkdir(runDirectory, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	char trtFilepath[256];
 	char uffFilepath[256];
 	char timesFilepath[256];
 	char labelsFilepath[256];
 	sprintf(trtFilepath, "%s/%s", resourceDirectory, trtFilename);
 	sprintf(uffFilepath, "%s/%s", resourceDirectory, uffFilename);
-	sprintf(timesFilepath, "%s/%s", resourceDirectory, timesFilename);
-	sprintf(labelsFilepath, "%s/%s", resourceDirectory, labelsFilename);
+	sprintf(timesFilepath, "%s/%s", runDirectory, timesFilename);
+	sprintf(labelsFilepath, "%s/%s", runDirectory, labelsFilename);
 
 	// Get timestamp
 	time_t rawtime;
@@ -272,15 +275,16 @@ int main(int argc, char** argv)
 	parser->registerInput("input_1", Dims3(INPUT_C, INPUT_H, INPUT_W), UffInputOrder::kNCHW);
 
 	std::string model(argv[1]);
-	int negativeLabel;
 	if (model.compare("deepweeds") == 0)
 	{
 		parser->registerOutput("fc9/Sigmoid");
-		negativeLabel = 8;
 	}
-	else {
+	else if (model.compare("autoweed") == 0) {
 		parser->registerOutput("fc3/Sigmoid");
-		negativeLabel = 2;
+	}
+	else
+	{
+		parser->registerOutput("output/Sigmoid");
 	}
 
 	// If TRT file exists, load first
@@ -317,6 +321,8 @@ int main(int argc, char** argv)
 	int bindingIdxOutput = 1;
 	auto bufferSizesInput = bufferSizes[bindingIdxInput];
 	auto bufferSizesOutput = bufferSizes[bindingIdxOutput];
+	int cameraCount = 4;
+	int outputCount = bufferSizesOutput.first / cameraCount;
 
 	ros::Subscriber sub = nh.subscribe("/preprocessed_images", 4, gatherCallback);
 	ros::Publisher target_publisher = nh.advertise<custom_messages::TargetInfo>("/targets", 100);
@@ -336,7 +342,7 @@ int main(int argc, char** argv)
 	if (labelsFile.is_open())
 	{
 		// Write header
-		labelsFile << "Image time,Target time,Frame,Camera,Label\n";
+		labelsFile << "Image time,Target time,Frame,Camera,Label,Score\n";
 		labelsFile.close();
 	}
 
@@ -375,8 +381,6 @@ int main(int argc, char** argv)
 
 			// Gather output information
 			int bindingIdxOutput = 1;
-			int cameraCount = 4;
-			int outputCount = bufferSizesOutput.first / cameraCount;
 
 			size_t memSize = cameraCount * outputCount * elementSize(bufferSizesOutput.second);
 			float* outputs = new float[cameraCount * outputCount];
@@ -385,15 +389,18 @@ int main(int argc, char** argv)
 			for (int cameraID = 0; cameraID < cameraCount; cameraID++)
 			{
 				int maxIdx = cameraID * outputCount;
+				int label = 0;
 				for (int i = 0; i < outputCount; ++i)
 					if (outputs[cameraID * outputCount + i] > outputs[maxIdx])
-						maxIdx = i;
+					{
+						maxIdx = cameraID * outputCount + i;
+						label = i;
+					}
 				float score = outputs[maxIdx];
-				int label = maxIdx % outputCount;
 				ROS_INFO("Image classified as label %d with %f%% confidence", label, score);
 
 				// Present target for spraying if non-negative and > 50% confidence
-				if (score > 0.5 && label != negativeLabel) {
+				if (score > 0.5 && label != outputCount - 1) {
 					// Publish target
 					custom_messages::TargetInfo newTarget;
 					newTarget.header.stamp = timestamps[cameraID];
@@ -419,7 +426,7 @@ int main(int argc, char** argv)
 				if (labelsFile.is_open())
 				{
 					// Write frame, camera and predicted label to file
-					labelsFile << image_time_str.c_str() << "," << target_time_str.c_str() << "," << frameCounts[cameraID] << "," << cameraID << "," << label << "\n";
+					labelsFile << image_time_str.c_str() << "," << target_time_str.c_str() << "," << frameCounts[cameraID] << "," << cameraID << "," << label << "," << score << "\n";
 					labelsFile.close();
 				}
 			}
